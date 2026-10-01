@@ -1,1 +1,17 @@
-/target
+# Rust build artifacts and profiling output
+/target/
+*.profraw
+*.profdata
+
+# Local SQLite databases and their journal files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+memory:
+
+# Local environment configuration (keep a committed example, if added)
+.env
+.env.*
+!.env.example
