@@ -10,7 +10,6 @@ use crate::{
     application::{
         dto::create_project::CreateProjectDto, ports::inbound::create_project::CreateProjectUseCase,
     },
-    domain::domain_error::DomainError,
 };
 
 #[derive(Clone)]
@@ -69,12 +68,11 @@ pub async fn create_project(
     body.validate()?;
 
     let dto = CreateProjectDto::from(body);
-    let project = state.create_project.create(dto).await.map_err(|error| {
-        error
-            .downcast::<DomainError>()
-            .map(ApiError::Domain)
-            .unwrap_or(ApiError::Unexpected)
-    })?;
+    let project = state
+        .create_project
+        .create(dto)
+        .await
+        .map_err(ApiError::from)?;
 
     Ok((
         StatusCode::CREATED,
@@ -86,7 +84,6 @@ pub async fn create_project(
 mod tests {
     use std::sync::{Arc, Mutex};
 
-    use anyhow::Error;
     use async_trait::async_trait;
     use axum::{body::to_bytes, response::IntoResponse};
     use serde_json::Value;
@@ -94,7 +91,7 @@ mod tests {
     use super::*;
     use crate::{
         application::{
-            dto::create_project::CreateProjectDto,
+            dto::create_project::CreateProjectDto, error::ApplicationError,
             ports::inbound::create_project::CreateProjectUseCase,
         },
         domain::project::Project,
@@ -107,7 +104,7 @@ mod tests {
 
     #[async_trait]
     impl CreateProjectUseCase for MockCreateProjectUseCase {
-        async fn create(&self, dto: CreateProjectDto) -> Result<Project, Error> {
+        async fn create(&self, dto: CreateProjectDto) -> Result<Project, ApplicationError> {
             *self.received_dto.lock().unwrap() = Some(dto.clone());
 
             Ok(Project::new(dto.name, dto.description))

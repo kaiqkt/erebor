@@ -9,7 +9,7 @@ use serde::Serialize;
 use thiserror::Error;
 use validator::ValidationErrors;
 
-use crate::domain::domain_error::DomainError;
+use crate::{application::error::ApplicationError, domain::domain_error::DomainError};
 
 #[derive(Debug, Error)]
 pub enum ApiError {
@@ -21,6 +21,15 @@ pub enum ApiError {
 
     #[error("unexpected error")]
     Unexpected,
+}
+
+impl From<ApplicationError> for ApiError {
+    fn from(error: ApplicationError) -> Self {
+        match error {
+            ApplicationError::Domain(error) => Self::Domain(error),
+            ApplicationError::Unexpected(_) => Self::Unexpected,
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]

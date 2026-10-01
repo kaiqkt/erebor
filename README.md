@@ -24,6 +24,17 @@ src/
 └── main.rs                                  # Entry point
 ```
 
+## Error handling
+
+Use cases return an `ApplicationError` instead of exposing infrastructure
+errors directly. Business failures are represented by `DomainError` and are
+wrapped by `ApplicationError::Domain`; unexpected failures become
+`ApplicationError::Unexpected`.
+
+The HTTP adapter converts `ApplicationError` into `ApiError`, which maps each
+error category to the appropriate HTTP response without the domain depending
+on HTTP concerns.
+
 ## Run
 
 ```bash

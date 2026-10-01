@@ -1,13 +1,15 @@
 use std::sync::Arc;
 
-use anyhow::Error;
 use async_trait::async_trait;
 
 use crate::{
-    application::dto::create_project::CreateProjectDto,
-    application::ports::{
-        inbound::create_project::CreateProjectUseCase,
-        outbound::project_repository::ProjectRepository,
+    application::{
+        dto::create_project::CreateProjectDto,
+        error::ApplicationError,
+        ports::{
+            inbound::create_project::CreateProjectUseCase,
+            outbound::project_repository::ProjectRepository,
+        },
     },
     domain::project::Project,
 };
@@ -24,10 +26,13 @@ impl CreateProjectService {
 
 #[async_trait]
 impl CreateProjectUseCase for CreateProjectService {
-    async fn create(&self, dto: CreateProjectDto) -> Result<Project, Error> {
+    async fn create(&self, dto: CreateProjectDto) -> Result<Project, ApplicationError> {
         let project = Project::new(dto.name, dto.description);
 
-        self.repository.save(&project).await?;
+        self.repository
+            .save(&project)
+            .await
+            .map_err(ApplicationError::Unexpected)?;
 
         Ok(project)
     }
