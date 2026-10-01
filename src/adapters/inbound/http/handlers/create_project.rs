@@ -1,13 +1,16 @@
 use std::sync::Arc;
 
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
     adapters::inbound::http::api_error::ApiError,
-    application::ports::inbound::create_project::CreateProjectUseCase,
-    domain::{domain_error::DomainError, project::CreateProjectDto},
+    application::{
+        dto::create_project::CreateProjectDto, ports::inbound::create_project::CreateProjectUseCase,
+    },
+    domain::domain_error::DomainError,
 };
 
 #[derive(Clone)]
@@ -33,14 +36,28 @@ pub struct CreateProjectRequest {
     description: String,
 }
 
-impl CreateProjectRequest {
-    fn try_new(name: &str, description: &str) -> CreateProjectDto {
-        let name = name.trim();
-        let description = description.trim();
+impl From<CreateProjectRequest> for crate::application::dto::create_project::CreateProjectDto {
+    fn from(project: CreateProjectRequest) -> Self {
+        Self {
+            name: project.name.to_owned().trim().to_string(),
+            description: project.description.to_owned().trim().to_string(),
+        }
+    }
+}
 
-        CreateProjectDto {
-            name: name.to_owned(),
-            description: description.to_owned(),
+#[derive(Serialize)]
+struct CreateProjectResponse {
+    id: Uuid,
+    name: String,
+    description: String,
+}
+
+impl From<crate::domain::project::Project> for CreateProjectResponse {
+    fn from(project: crate::domain::project::Project) -> Self {
+        Self {
+            id: project.id(),
+            name: project.name().to_owned(),
+            description: project.description().to_owned(),
         }
     }
 }
@@ -51,7 +68,7 @@ pub async fn create_project(
 ) -> Result<impl IntoResponse, ApiError> {
     body.validate()?;
 
-    let dto = CreateProjectRequest::try_new(&body.name, &body.description);
+    let dto = CreateProjectDto::from(body);
     let project = state.create_project.create(dto).await.map_err(|error| {
         error
             .downcast::<DomainError>()
@@ -59,7 +76,10 @@ pub async fn create_project(
             .unwrap_or(ApiError::Unexpected)
     })?;
 
-    Ok((StatusCode::CREATED, Json(project)))
+    Ok((
+        StatusCode::CREATED,
+        Json(CreateProjectResponse::from(project)),
+    ))
 }
 
 #[cfg(test)]
@@ -68,16 +88,16 @@ mod tests {
 
     use anyhow::Error;
     use async_trait::async_trait;
-    use axum::{
-        body::to_bytes,
-        response::IntoResponse,
-    };
+    use axum::{body::to_bytes, response::IntoResponse};
     use serde_json::Value;
 
     use super::*;
     use crate::{
-        application::ports::inbound::create_project::CreateProjectUseCase,
-        domain::project::{CreateProjectDto, Project},
+        application::{
+            dto::create_project::CreateProjectDto,
+            ports::inbound::create_project::CreateProjectUseCase,
+        },
+        domain::project::Project,
     };
 
     #[derive(Clone, Default)]

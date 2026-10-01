@@ -9,6 +9,7 @@ Rust API for managing projects, organized around a hexagonal architecture
 src/
 ├── domain/                                  # Business rules and concepts
 ├── application/                             # Application flows
+│   ├── dto/                                 # Input data for application use cases
 │   ├── ports/                               # Contracts between the core and adapters
 │   │   ├── inbound/                         # Operations exposed by the application
 │   │   └── outbound/                        # Dependencies required by the application

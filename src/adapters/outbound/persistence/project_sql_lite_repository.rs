@@ -31,9 +31,9 @@ struct ProjectTable {
 impl ProjectRepository for ProjectSqliteRepository {
     async fn save(&self, project: &Project) -> Result<(), Error> {
         sqlx::query("INSERT INTO projects (id, name, description) VALUES (?, ?, ?)")
-            .bind(project.id)
-            .bind(&project.name)
-            .bind(&project.description)
+            .bind(project.id())
+            .bind(project.name())
+            .bind(project.description())
             .execute(self.pool.as_ref())
             .await?;
 
@@ -69,14 +69,14 @@ mod test {
         let saved_project = sqlx::query_as::<_, ProjectTable>(
             "SELECT id, name, description FROM projects WHERE id = ?",
         )
-        .bind(project.id)
+        .bind(project.id())
         .fetch_one(pool.as_ref())
         .await
         .unwrap();
 
-        assert_eq!(saved_project.id, project.id);
-        assert_eq!(saved_project.name, project.name);
-        assert_eq!(saved_project.description, project.description);
+        assert_eq!(saved_project.id, project.id());
+        assert_eq!(saved_project.name, project.name());
+        assert_eq!(saved_project.description, project.description());
     }
 
     async fn create_sqlite() -> anyhow::Result<Arc<Pool<Sqlite>>> {

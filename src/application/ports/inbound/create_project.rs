@@ -1,7 +1,7 @@
 use anyhow::Error;
 use async_trait::async_trait;
 
-use crate::domain::project::{CreateProjectDto, Project};
+use crate::{application::dto::create_project::CreateProjectDto, domain::project::Project};
 
 #[async_trait]
 pub(crate) trait CreateProjectUseCase: Send + Sync + 'static {

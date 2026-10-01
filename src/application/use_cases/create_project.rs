@@ -4,11 +4,12 @@ use anyhow::Error;
 use async_trait::async_trait;
 
 use crate::{
+    application::dto::create_project::CreateProjectDto,
     application::ports::{
         inbound::create_project::CreateProjectUseCase,
         outbound::project_repository::ProjectRepository,
     },
-    domain::project::{CreateProjectDto, Project},
+    domain::project::Project,
 };
 
 pub struct CreateProjectService {
@@ -40,13 +41,14 @@ mod tests {
 
     use crate::{
         application::{
+            dto::create_project::CreateProjectDto,
             ports::{
                 inbound::create_project::CreateProjectUseCase,
                 outbound::project_repository::ProjectRepository,
             },
             use_cases::create_project::CreateProjectService,
         },
-        domain::project::{CreateProjectDto, Project},
+        domain::project::Project,
     };
 
     #[derive(Clone, Default)]
@@ -79,8 +81,8 @@ mod tests {
             .unwrap();
 
         let saved_project = received_project.lock().unwrap().clone().unwrap();
-        assert_eq!(project.id, saved_project.id);
-        assert_eq!(project.name, saved_project.name);
-        assert_eq!(project.description, saved_project.description)
+        assert_eq!(project.id(), saved_project.id());
+        assert_eq!(project.name(), saved_project.name());
+        assert_eq!(project.description(), saved_project.description())
     }
 }

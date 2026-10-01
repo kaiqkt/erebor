@@ -1,15 +1,14 @@
-use serde::Serialize;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Project {
-    pub(crate) id: Uuid,
-    pub(crate) name: String,
-    pub(crate) description: String,
+    id: Uuid,
+    name: String,
+    description: String,
 }
 
 impl Project {
-    pub(crate) fn new(name: String, description: String) -> Self {
+    pub fn new(name: String, description: String) -> Self {
         let id = Uuid::new_v4();
 
         Self {
@@ -18,10 +17,16 @@ impl Project {
             description,
         }
     }
-}
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct CreateProjectDto {
-    pub(crate) name: String,
-    pub(crate) description: String,
+    pub fn id(&self) -> Uuid {
+        self.id
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn description(&self) -> &str {
+        &self.description
+    }
 }
